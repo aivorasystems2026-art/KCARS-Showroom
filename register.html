@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DriveTrust — Showroom Registration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --green-deep:#123A2B;
+    --green-mid:#1F5B44;
+    --green-soft:#E9F1EC;
+    --mustard:#E3A63A;
+    --orange:#D9701E;
+    --cream:#FBF6EC;
+    --ink:#1A1A17;
+    --ink-soft:#5C5A52;
+    --line:#E4DCC9;
+    --radius:16px;
+    --shadow:0 6px 20px rgba(18,58,43,0.08);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;min-height:100vh;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    display:flex;align-items:center;justify-content:center;
+    padding:24px 16px;
+  }
+  h1,.display{font-family:'Fraunces',serif;font-weight:700;letter-spacing:-0.01em;}
+  .card{
+    width:100%;max-width:420px;
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);overflow:hidden;
+  }
+  .card-header{
+    background:linear-gradient(135deg,var(--green-deep),var(--green-mid));
+    color:#fff;padding:24px 24px 20px;
+  }
+  .logo-badge{
+    width:42px;height:42px;border-radius:12px;
+    background:linear-gradient(135deg,var(--mustard),var(--orange));
+    color:var(--green-deep);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;font-weight:700;font-size:15px;
+    margin-bottom:12px;
+  }
+  .card-header h1{font-size:21px;margin:0 0 4px;color:#fff;}
+  .card-header p{margin:0;font-size:13px;color:#CFE2D8;}
+  .card-body{padding:24px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;}
+  .field input, .field select{
+    width:100%;padding:11px 12px;border:1px solid var(--line);
+    border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;
+    background:var(--green-soft);color:var(--ink);
+  }
+  .field input:focus, .field select:focus{outline:2px solid var(--green-mid);outline-offset:1px;}
+  .row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .submit-btn{
+    width:100%;padding:13px;border:none;border-radius:10px;
+    background:var(--orange);color:#fff;font-weight:700;font-size:14.5px;
+    cursor:pointer;transition:background .18s ease;margin-top:6px;
+  }
+  .submit-btn:hover{background:#C2620E;}
+  .submit-btn:disabled{opacity:0.6;cursor:not-allowed;}
+  .form-msg{margin-top:12px;font-size:13px;font-weight:600;text-align:center;}
+  .form-msg.ok{color:var(--green-mid);}
+  .form-msg.err{color:#B3261E;}
+  .switch-link{
+    text-align:center;margin-top:16px;font-size:13px;color:var(--ink-soft);
+  }
+  .switch-link a{color:var(--orange);font-weight:700;text-decoration:none;}
+  .divider{
+    font-size:11px;text-transform:uppercase;letter-spacing:0.06em;
+    color:var(--ink-soft);text-align:center;margin:18px 0 10px;
+    position:relative;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-header">
+    <div class="logo-badge">DT</div>
+    <h1 id="cardTitle">Register Your Showroom</h1>
+    <p id="cardSubtitle">Set up your showroom profile and admin login</p>
+  </div>
+  <div class="card-body">
+
+    <!-- Login gate shown before editing an existing showroom's details -->
+    <div id="editLoginSection" style="display:none;">
+      <div class="field">
+        <label for="editUsername">Username</label>
+        <input type="text" id="editUsername" autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="editPassword">Password</label>
+        <input type="password" id="editPassword" autocomplete="current-password">
+      </div>
+      <button type="button" class="submit-btn" id="editLoginBtn">Load My Showroom Details</button>
+      <div class="form-msg" id="editLoginMsg"></div>
+      <div class="switch-link"><a href="#" id="cancelEditLink">← Back to Register</a></div>
+    </div>
+
+    <form id="registerForm">
+      <div class="field">
+        <label for="showroomName">Showroom Name</label>
+        <input type="text" id="showroomName" required placeholder="e.g. DriveTrust Preowned Cars">
+      </div>
+      <div class="field">
+        <label for="address">Address</label>
+        <input type="text" id="address" required placeholder="e.g. 12, Trichy Road">
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <label for="district">District</label>
+          <select id="district" required>
+            <option value="" disabled selected>Select district</option>
+            <option>Ariyalur</option>
+            <option>Chengalpattu</option>
+            <option>Chennai</option>
+            <option>Coimbatore</option>
+            <option>Cuddalore</option>
+            <option>Dharmapuri</option>
+            <option>Dindigul</option>
+            <option>Erode</option>
+            <option>Kallakurichi</option>
+            <option>Kanchipuram</option>
+            <option>Kanyakumari</option>
+            <option>Karur</option>
+            <option>Krishnagiri</option>
+            <option>Madurai</option>
+            <option>Mayiladuthurai</option>
+            <option>Nagapattinam</option>
+            <option>Namakkal</option>
+            <option>Nilgiris</option>
+            <option>Perambalur</option>
+            <option>Pudukkottai</option>
+            <option>Ramanathapuram</option>
+            <option>Ranipet</option>
+            <option>Salem</option>
+            <option>Sivaganga</option>
+            <option>Tenkasi</option>
+            <option>Thanjavur</option>
+            <option>Theni</option>
+            <option>Thoothukudi</option>
+            <option>Tiruchirappalli</option>
+            <option>Tirunelveli</option>
+            <option>Tirupathur</option>
+            <option>Tiruppur</option>
+            <option>Tiruvallur</option>
+            <option>Tiruvannamalai</option>
+            <option>Tiruvarur</option>
+            <option>Vellore</option>
+            <option>Viluppuram</option>
+            <option>Virudhunagar</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="phone">Phone No.</label>
+          <input type="tel" id="phone" required placeholder="e.g. 8870454942">
+        </div>
+      </div>
+
+      <div class="field" style="text-align:center;">
+        <label for="showroomLogo" style="display:block;">Showroom Logo (optional)</label>
+        <img id="showroomLogoPreview" style="display:none;margin:0 auto 10px;width:80px;height:80px;object-fit:cover;border-radius:50%;border:1px solid var(--line);">
+        <input type="file" id="showroomLogo" accept="image/*" style="display:block;margin:0 auto;">
+      </div>
+
+      <div class="divider">Admin Login Details</div>
+
+      <div class="field">
+        <label for="username">Username</label>
+        <input type="text" id="username" required placeholder="Choose a username" autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" required minlength="6" placeholder="At least 6 characters" autocomplete="new-password">
+        <div id="passwordHint" style="display:none;font-size:11.5px;color:var(--ink-soft);margin-top:6px;">Leave blank to keep your current password.</div>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">Register Showroom</button>
+      <button type="button" class="submit-btn" id="cancelUpdateBtn" style="display:none;background:var(--green-soft);color:var(--green-deep);margin-top:8px;">Cancel</button>
+      <div class="form-msg" id="formMsg"></div>
+    </form>
+    <div class="switch-link" id="switchLinks">
+      Already registered? <a href="admin.html">Go to Admin Login</a><br>
+      Want to change your showroom's details? <a href="#" id="editShopLink">Edit Showroom Details</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  // =========================================================
+  // PASTE YOUR SUPABASE PROJECT DETAILS HERE (same as admin.html)
+  // =========================================================
+  const SUPABASE_URL = "https://zxrlbenaxmjsfgexpkup.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_LsIi7VlsX2mRc6biHqgnZg_2aXDJOsL";
+
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let editingShowroomId = null;   // set once an existing showroom is loaded for editing
+  let existingLogoUrl = null;     // keeps the current logo if a new one isn't picked
+
+  // Hash the password in the browser before it ever gets sent to Supabase,
+  // so the database never stores it as plain readable text.
+  async function hashPassword(password){
+    const enc = new TextEncoder().encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  // ---------- "Edit Showroom Details" login gate ----------
+  document.getElementById('editShopLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('switchLinks').style.display = 'none';
+    document.getElementById('editLoginSection').style.display = 'block';
+    document.getElementById('cardTitle').textContent = 'Edit Showroom Details';
+    document.getElementById('cardSubtitle').textContent = 'Log in to update your showroom profile';
+  });
+
+  document.getElementById('cancelEditLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    resetToRegisterView();
+  });
+
+  document.getElementById('cancelUpdateBtn').addEventListener('click', () => {
+    resetToRegisterView();
+  });
+
+  function resetToRegisterView(){
+    editingShowroomId = null;
+    existingLogoUrl = null;
+    document.getElementById('editLoginSection').style.display = 'none';
+    document.getElementById('registerForm').style.display = 'block';
+    document.getElementById('switchLinks').style.display = 'block';
+    document.getElementById('registerForm').reset();
+    document.getElementById('showroomLogoPreview').style.display = 'none';
+    document.getElementById('passwordHint').style.display = 'none';
+    document.getElementById('password').required = true;
+    document.getElementById('cardTitle').textContent = 'Register Your Showroom';
+    document.getElementById('cardSubtitle').textContent = 'Set up your showroom profile and admin login';
+    document.getElementById('submitBtn').textContent = 'Register Showroom';
+    document.getElementById('cancelUpdateBtn').style.display = 'none';
+    document.getElementById('editLoginMsg').textContent = '';
+    document.getElementById('editLoginMsg').className = 'form-msg';
+  }
+
+  document.getElementById('editLoginBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('editLoginBtn');
+    const msg = document.getElementById('editLoginMsg');
+    btn.disabled = true;
+    btn.textContent = 'Checking...';
+    msg.textContent = '';
+    msg.className = 'form-msg';
+
+    const username = document.getElementById('editUsername').value.trim().toLowerCase();
+    const password = document.getElementById('editPassword').value;
+
+    try{
+      const { data, error } = await sb.from('showroom_profile').select('*').eq('username', username).limit(1);
+      if (error) throw error;
+      if (!data || data.length === 0) throw new Error('Incorrect username or password.');
+
+      const showroom = data[0];
+      const passwordHash = await hashPassword(password);
+      if (showroom.password_hash !== passwordHash) throw new Error('Incorrect username or password.');
+
+      // Pre-fill the form with this showroom's existing details
+      editingShowroomId = showroom.id;
+      existingLogoUrl = showroom.showroomlogo || null;
+
+      document.getElementById('showroomName').value = showroom.showroom_name || '';
+      document.getElementById('address').value = showroom.address || '';
+      document.getElementById('district').value = showroom.district || '';
+      document.getElementById('phone').value = showroom.phone || '';
+      document.getElementById('username').value = showroom.username || '';
+      document.getElementById('password').value = '';
+      document.getElementById('password').required = false;
+      document.getElementById('passwordHint').style.display = 'block';
+
+      const preview = document.getElementById('showroomLogoPreview');
+      if (existingLogoUrl){ preview.src = existingLogoUrl; preview.style.display = 'block'; }
+      else { preview.style.display = 'none'; }
+
+      document.getElementById('cardTitle').textContent = 'Edit Showroom Details';
+      document.getElementById('cardSubtitle').textContent = 'Update your showroom profile';
+      document.getElementById('submitBtn').textContent = 'Update Showroom Details';
+      document.getElementById('cancelUpdateBtn').style.display = 'block';
+
+      document.getElementById('editLoginSection').style.display = 'none';
+      document.getElementById('registerForm').style.display = 'block';
+
+    }catch(err){
+      msg.textContent = '⚠️ ' + (err.message || 'Something went wrong.');
+      msg.classList.add('err');
+    }finally{
+      btn.disabled = false;
+      btn.textContent = 'Load My Showroom Details';
+    }
+  });
+
+  // Live preview when a showroom owner picks a logo file
+  document.getElementById('showroomLogo').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    const preview = document.getElementById('showroomLogoPreview');
+    if (!file){ preview.style.display = 'none'; return; }
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = 'block';
+  });
+
+  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    const msg = document.getElementById('formMsg');
+    const isEditing = !!editingShowroomId;
+    btn.disabled = true;
+    btn.textContent = isEditing ? "Updating..." : "Registering...";
+    msg.textContent = "";
+    msg.className = "form-msg";
+
+    const showroomName = document.getElementById('showroomName').value.trim();
+    const address = document.getElementById('address').value.trim();
+    const district = document.getElementById('district').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const username = document.getElementById('username').value.trim().toLowerCase();
+    const password = document.getElementById('password').value;
+    const logoFile = document.getElementById('showroomLogo').files[0];
+
+    try {
+      // Check the username isn't taken by a DIFFERENT showroom
+      const { data: existing } = await sb.from('showroom_profile').select('id').eq('username', username).limit(1);
+      if (existing && existing.length > 0 && existing[0].id !== editingShowroomId) {
+        throw new Error("That username is already taken. Please choose another.");
+      }
+
+      const payload = {
+        showroom_name: showroomName,
+        address: address,
+        district: district,
+        phone: phone,
+        username: username
+      };
+
+      // On registration, password is required. On edit, only update it if
+      // the owner actually typed a new one — otherwise keep the old hash.
+      if (password) {
+        payload.password_hash = await hashPassword(password);
+      }
+
+      if (logoFile){
+        btn.textContent = "Uploading logo...";
+        const path = `${showroomName.replace(/\s+/g,'-')}-${Date.now()}-${logoFile.name}`;
+        const { error: uploadError } = await sb.storage.from('showroom-logos').upload(path, logoFile);
+        if (uploadError) throw uploadError;
+
+        // Signed URLs work even if the bucket's "Public" toggle wasn't set
+        // correctly — they carry their own access token.
+        let logoUrl = null;
+        const { data: signedData, error: signError } = await sb.storage
+          .from('showroom-logos')
+          .createSignedUrl(path, 60 * 60 * 24 * 365 * 10); // valid 10 years
+        if (!signError && signedData) {
+          logoUrl = signedData.signedUrl;
+        } else {
+          const { data: publicData } = sb.storage.from('showroom-logos').getPublicUrl(path);
+          logoUrl = publicData.publicUrl;
+        }
+        payload.showroomlogo = logoUrl;
+      } else if (isEditing) {
+        payload.showroomlogo = existingLogoUrl; // keep the existing logo untouched
+      }
+
+      if (isEditing){
+        btn.textContent = "Updating...";
+        const { error: updateError } = await sb.from('showroom_profile').update(payload).eq('id', editingShowroomId);
+        if (updateError) throw updateError;
+        msg.textContent = "✅ Showroom details updated!";
+        msg.classList.add('ok');
+        setTimeout(resetToRegisterView, 1500);
+      } else {
+        payload.password_hash = await hashPassword(password);
+        btn.textContent = "Registering...";
+        const { error: insertError } = await sb.from('showroom_profile').insert([payload]);
+        if (insertError) throw insertError;
+        msg.textContent = "✅ Showroom registered! Redirecting to Admin Login...";
+        msg.classList.add('ok');
+        setTimeout(() => { window.location.href = "admin.html"; }, 1500);
+      }
+
+    } catch (err) {
+      console.error(err);
+      let readable = err.message || "Something went wrong. Please try again.";
+      if (readable.toLowerCase().includes('bucket not found')){
+        readable = "Logo storage isn't set up yet. In Supabase, go to Storage → New bucket → name it exactly 'showroom-logos' (Public bucket ON), then try again.";
+      }
+      msg.textContent = "⚠️ " + readable;
+      msg.classList.add('err');
+      btn.disabled = false;
+      btn.textContent = isEditing ? "Update Showroom Details" : "Register Showroom";
+    }
+  });
+</script>
+
+</body>
+</html>
